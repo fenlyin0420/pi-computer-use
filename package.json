@@ -1,0 +1,24 @@
+{
+  "name": "pi-computer-use",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi extension: computer-use on a dedicated Xvfb virtual desktop — screenshot, mouse, keyboard, window and app control, never touching your real desktop",
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "typebox": "^1.1.38"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.87.0",
+    "@types/node": "^25.0.0",
+    "typescript": "^5.9.3"
+  }
+}
