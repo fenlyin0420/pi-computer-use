@@ -349,10 +349,13 @@ export default function computerUseExtension(pi: ExtensionAPI) {
     async execute(_id, p) {
       const err = ensureDesktop();
       if (err) return textResult(`Error: ${err}`);
-      const args = ["mousemove", String(Math.round(p.x)), String(Math.round(p.y)), "click"];
-      if (p.button && p.button !== "left") args.push("--button", p.button);
-      if (p.clicks && p.clicks > 1) args.push("--clicks", String(p.clicks));
-      const r = xrun("xdotool", args);
+      const btn = p.button === "right" ? "3" : p.button === "middle" ? "2" : "1";
+      const base = ["mousemove", String(Math.round(p.x)), String(Math.round(p.y)), "click"];
+      let r = xrun("xdotool", p.clicks && p.clicks > 1 ? [...base, "--clicks", String(p.clicks), btn] : [...base, btn]);
+      if (r.code !== 0 && (r.stderr || "").includes("unrecognized option")) {
+        // older xdotool uses --repeat instead of --clicks
+        r = xrun("xdotool", [...base, "--repeat", String(p.clicks), btn]);
+      }
       return guard(() => (r.code === 0 ? { content: [{ type: "text", text: `clicked (${p.x},${p.y})${p.button ? " " + p.button : ""}${p.clicks ? " x" + p.clicks : ""}` }] } : { error: `click failed: ${r.stderr || r.stdout}` }));
     },
   });
