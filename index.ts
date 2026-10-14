@@ -306,7 +306,8 @@ export default function computerUseExtension(pi: ExtensionAPI) {
     label: "Computer Screen",
     description:
       `Screenshot of the dedicated virtual desktop (a separate Xvfb display ${DISPLAY}, isolated from the real desktop). ` +
-      "Returns the image plus its file path. Use an optional region to zoom into an area. " +
+      "The captured image is shown to the user automatically in the conversation. " +
+      "Use an optional region to zoom into an area. " +
       WORKFLOW_HINT,
     promptSnippet: "Screenshot of the isolated virtual desktop (computer use)",
     parameters: Type.Object({
