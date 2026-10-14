@@ -7,7 +7,8 @@ metadata:
 
 # pi-computer-use（2026-09-28 建立）
 
-位置：`~/Documents/GitHub/pi-computer-use/`（已 `pi install` 注册）。
+位置：`~/Documents/GitHub/pi-computer-use/`（pi 包源 `git:github.com/fenlyin0420/pi-computer-use`，
+仓库 public，改完要 push + `pi update --extensions`）。
 
 - 架构：`Xvfb :99 (1920x1080x24)` + `openbox` + 默认浏览器 firefox-esr；
   截图 `import`、鼠标键盘 `xdotool`、窗口 `wmctrl`，全部 `DISPLAY=:99`，
