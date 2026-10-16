@@ -16,7 +16,9 @@ metadata:
 - 工具：`computer_screen/click/drag/type/key/scroll/window/app/desktop`，
   约定 observe-act-verify 循环；手动控制 `bin/desktop.sh start|stop|status|shot`
   或 pi 里 `/computer status`。
-- 状态目录 `~/.pi/computer-use/`（pid、logs、browser-profile、shot.png）。
+- 状态目录 `~/.pi/computer-use/`（pid、logs、browser-profile、shots/ 截屏）。
+  截屏命名 `<YYYYMMDDHHMMSS>_shot.png`，同一秒多次截图加 `-2`/`-3` 后缀且永不覆盖
+  （TS 用 `openSync(f,"wx")` 预占名、bash 用 `-e` 存在判断）。
 - **坑：Ubuntu 24.04 的 snap firefox** 带沙盒，自定义 profile 下会报
   "already running, but not responding" 且 profile 目录不写任何文件。
   解法：装 `firefox-esr`（mozillateam PPA），扩展里按

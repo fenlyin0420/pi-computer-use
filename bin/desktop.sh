@@ -4,7 +4,7 @@
 #   desktop.sh start    start Xvfb + openbox + firefox (if not running)
 #   desktop.sh stop     stop everything
 #   desktop.sh status   show state
-#   desktop.sh shot [f] screenshot to [f] (default ~/.pi/computer-use/shot.png)
+#   desktop.sh shot [f] screenshot to [f] (default ~/.pi/computer-use/shots/<ts>_shot.png)
 #
 # Env: PI_COMPUTER_USE_DISPLAY (default 99)
 set -euo pipefail
@@ -93,7 +93,18 @@ status() {
 }
 
 shot() {
-  local out="${1:-$STATE/shot.png}"
+  local out
+  if [[ $# -gt 0 ]]; then
+    out="$1"
+  else
+    local dir="$STATE/shots" stamp base n
+    mkdir -p "$dir"
+    stamp=$(date +%Y%m%d%H%M%S)
+    base="$dir/${stamp}_shot"
+    n=1
+    out="$base.png"
+    while [[ -e "$out" ]]; do n=$((n+1)); out="$base-$n.png"; done
+  fi
   DISPLAY="$DISPLAY" import -window root "$out" && echo "$out"
 }
 

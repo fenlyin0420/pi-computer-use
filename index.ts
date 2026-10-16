@@ -21,7 +21,7 @@
  * State (pids, logs, firefox profile, screenshots): ~/.pi/computer-use/
  */
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -42,7 +42,7 @@ const Xvfb_PID_FILE = path.join(STATE_DIR, "xvfb.pid");
 const OPENBOX_PID_FILE = path.join(STATE_DIR, "openbox.pid");
 const BROWSER_PID_FILE = path.join(STATE_DIR, "browser.pid");
 const WALLPAPER_PID_FILE = path.join(STATE_DIR, "feh.pid");
-const SHOT_PATH = path.join(STATE_DIR, "shot.png");
+const SHOTS_DIR = path.join(STATE_DIR, "shots");
 const BROWSER_PROFILE = path.join(STATE_DIR, "browser-profile");
 
 /**
@@ -252,16 +252,43 @@ function stopDesktop(): string {
 type TextContent = { type: "text"; text: string };
 type ImageContent = { type: "image"; data: string; mimeType: string };
 
+/**
+ * Reserve a fresh screenshot file name `YYYYMMDDHHMMSS_shot.png` inside
+ * SHOTS_DIR. Screenshots are never overwritten: the file is created
+ * exclusively (wx), so a same-second clash falls back to `_shot-2.png`,
+ * `_shot-3.png`, ... even with concurrent captures.
+ */
+function reserveShotPath(): string {
+  mkdirSync(SHOTS_DIR, { recursive: true });
+  const now = new Date();
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  const stamp =
+    `${now.getFullYear()}${p2(now.getMonth() + 1)}${p2(now.getDate())}` +
+    `${p2(now.getHours())}${p2(now.getMinutes())}${p2(now.getSeconds())}`;
+  for (let n = 1; n <= 9999; n++) {
+    const name = `${stamp}_shot${n === 1 ? "" : `-${n}`}.png`;
+    const file = path.join(SHOTS_DIR, name);
+    try {
+      closeSync(openSync(file, "wx"));
+      return file;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+    }
+  }
+  throw new Error(`no free screenshot name for ${stamp} in ${SHOTS_DIR}`);
+}
+
 function screenshot(region?: { x: number; y: number; w: number; h: number }):
   | { content: (TextContent | ImageContent)[]; path: string; size: number }
   | { error: string } {
   if (!displayUp()) return { error: "virtual display is down; run computer_desktop action=start first" };
+  const shotPath = reserveShotPath();
   const args = ["-window", "root"];
   if (region) args.splice(0, 0, "-crop", `${region.w}x${region.h}+${region.x}+${region.y}`, "+repage");
-  args.push(SHOT_PATH);
+  args.push(shotPath);
   const r = xrun("import", args, { timeoutMs: 20000 });
   if (r.code !== 0) return { error: `screenshot failed: ${r.stderr || r.stdout}` };
-  const data = readFileSync(SHOT_PATH).toString("base64");
+  const data = readFileSync(shotPath).toString("base64");
   const size = Math.round(data.length / 1024);
   const label = region
     ? `region x=${region.x} y=${region.y} w=${region.w} h=${region.h}`
@@ -271,7 +298,7 @@ function screenshot(region?: { x: number; y: number; w: number; h: number }):
       { type: "text", text: `Virtual desktop screenshot (${label}).` },
       { type: "image", data, mimeType: "image/png" },
     ],
-    path: SHOT_PATH,
+    path: shotPath,
     size,
   };
 }
@@ -306,7 +333,7 @@ export default function computerUseExtension(pi: ExtensionAPI) {
     label: "Computer Screen",
     description:
       `Screenshot of the dedicated virtual desktop (a separate Xvfb display ${DISPLAY}, isolated from the real desktop). ` +
-      "The captured image is shown to the user automatically in the conversation. " +
+      "The captured image is shown to the user automatically in the conversation and kept on disk as shots/YYYYMMDDHHMMSS_shot.png (never overwritten). " +
       "Use an optional region to zoom into an area. " +
       WORKFLOW_HINT,
     promptSnippet: "Screenshot of the isolated virtual desktop (computer use)",

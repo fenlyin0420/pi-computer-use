@@ -17,7 +17,8 @@ Xvfb :99 (1920x1080x24)
  └─ firefox-esr      默认浏览器（独立 profile，fallback: firefox → google-chrome）
 ```
 
-- 截图：ImageMagick `import -window root`
+- 截图：ImageMagick `import -window root`，每次截屏都存新文件
+  （`shots/YYYYMMDDHHMMSS_shot.png`，同一秒内多次截图追加 `-2`、`-3`…，不覆盖）
 - 鼠标/键盘：`xdotool`
 - 窗口管理：`wmctrl`
 - 所有命令都只带 `DISPLAY=:99`，与你的 `:1` 真实桌面完全隔离
@@ -40,7 +41,7 @@ pi install /path/to/pi-computer-use
 
 | 工具 | 说明 |
 |---|---|
-| `computer_screen` | 截图（全屏或区域），返回图像 + 文件路径 |
+| `computer_screen` | 截图（全屏或区域），返回图像 + 文件路径（存 `shots/<时间戳>_shot.png`） |
 | `computer_click` | 左/右/中键单击、双击、三击 |
 | `computer_drag` | 拖拽（按-移动-释放） |
 | `computer_type` | 向焦点窗口输入文本 |
@@ -59,7 +60,8 @@ bin/desktop.sh start | stop | status | shot [file]
 pi /computer status        # pi 里的斜杠命令（等同 computer_desktop status）
 ```
 
-状态文件（pid、日志、浏览器 profile、截图）都在 `~/.pi/computer-use/`。
+状态文件（pid、日志、浏览器 profile）都在 `~/.pi/computer-use/`，截屏按时间戳留在
+`~/.pi/computer-use/shots/`（`20261016164900_shot.png`，永不覆盖）。
 
 ## 配置
 
